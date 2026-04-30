@@ -1,8 +1,8 @@
-<div class="flex h-[calc(100vh-65px)] bg-white dark:bg-zinc-900 overflow-hidden text-gray-800 dark:text-zinc-100 transition-colors"
+<div class="flex h-[calc(100vh-65px)] bg-white/20 dark:bg-zinc-950/20 backdrop-blur-sm overflow-hidden text-gray-800 dark:text-zinc-100 transition-colors"
      x-data="{ showGroupModal: @entangle('showGroupModal') }">
     <!-- Left Sidebar -->
-    <div class="w-1/3 bg-gray-50 dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 flex flex-col transition-colors">
-        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 flex justify-between items-center transition-colors">
+    <div class="w-1/3 bg-gray-50/40 dark:bg-zinc-900/40 border-r border-gray-200 dark:border-zinc-800 flex flex-col transition-colors">
+        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 flex justify-between items-center transition-colors">
             <span class="font-semibold text-lg text-gray-800 dark:text-white">Chats</span>
             <button @click="showGroupModal = true" class="text-[#FF2D20] hover:text-red-600 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
@@ -43,7 +43,7 @@
     </div>
 
     <!-- Right Sidebar: Chat Window -->
-    <div class="w-2/3 flex flex-col bg-white dark:bg-black relative transition-colors">
+    <div class="w-2/3 flex flex-col bg-white/30 dark:bg-black/30 backdrop-blur-md relative transition-colors">
         @if($activeConversation)
             @php
                 $isGroup = $activeConversation->is_group;
@@ -52,7 +52,7 @@
                 $isOnline = !$isGroup && $otherUser ? in_array($otherUser->id, $onlineUsers) : false;
             @endphp
             <!-- Chat Header -->
-            <div class="p-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50 dark:bg-zinc-950 flex items-center shadow-sm z-10 transition-colors">
+            <div class="p-4 border-b border-gray-200 dark:border-zinc-800 bg-gray-50/50 dark:bg-zinc-950/50 flex items-center shadow-sm z-10 transition-colors">
                 <div class="h-10 w-10 rounded-full bg-[#FF2D20] text-white flex items-center justify-center font-bold text-lg shadow-md">
                     {{ strtoupper(substr($name ?? 'G', 0, 1)) }}
                 </div>
@@ -65,8 +65,16 @@
             </div>
 
             <!-- Messages Area -->
-            <div class="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 relative bg-gray-50 dark:bg-black transition-colors" id="messages" x-data x-init="$watch('$wire.messages', () => { setTimeout(() => { $el.scrollTop = $el.scrollHeight }, 0) })">
-                <div class="absolute inset-0 bg-gradient-to-br from-[#FF2D20]/5 to-transparent pointer-events-none hidden dark:block"></div>
+            <div class="flex-1 overflow-y-auto p-4 flex flex-col space-y-4 relative bg-gray-50/20 dark:bg-black/20 transition-colors" 
+                 id="messages" 
+                 x-data 
+                 x-init="$watch('$wire.messages', () => { setTimeout(() => { $el.scrollTop = $el.scrollHeight }, 0) })"
+                 @mousemove="(e) => { 
+                    const rect = $el.getBoundingClientRect();
+                    $el.style.setProperty('--x', (e.clientX - rect.left) + 'px'); 
+                    $el.style.setProperty('--y', (e.clientY - rect.top) + 'px'); 
+                 }">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_var(--x,50%)_var(--y,50%),rgba(255,45,32,0.08),transparent_50%)] pointer-events-none hidden dark:block"></div>
                 
                 @foreach($messages as $message)
                     @if($message['user_id'] === auth()->id())
@@ -97,7 +105,7 @@
             </div>
 
             <!-- Input Area -->
-            <div class="p-4 bg-gray-50 dark:bg-zinc-950 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors">
+            <div class="p-4 bg-gray-50/50 dark:bg-zinc-950/50 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors">
                 <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
                     <input 
                         type="text" 
@@ -113,8 +121,13 @@
             </div>
         @else
             <!-- Empty State -->
-            <div class="flex-1 flex items-center justify-center flex-col relative bg-white dark:bg-black transition-colors">
-                <div class="absolute inset-0 bg-gradient-to-br from-[#FF2D20]/5 to-transparent pointer-events-none hidden dark:block"></div>
+            <div class="flex-1 flex items-center justify-center flex-col relative bg-white dark:bg-black transition-colors"
+                 @mousemove="(e) => { 
+                    const rect = $el.getBoundingClientRect();
+                    $el.style.setProperty('--x', (e.clientX - rect.left) + 'px'); 
+                    $el.style.setProperty('--y', (e.clientY - rect.top) + 'px'); 
+                 }">
+                <div class="absolute inset-0 bg-[radial-gradient(circle_at_var(--x,50%)_var(--y,50%),rgba(255,45,32,0.12),transparent_70%)] pointer-events-none hidden dark:block"></div>
                 <div class="bg-gray-100 dark:bg-zinc-800/50 p-6 rounded-full mb-6 ring-1 ring-gray-200 dark:ring-white/10 transition-colors">
                     <svg class="w-16 h-16 text-[#FF2D20]/80" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
                 </div>
