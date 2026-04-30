@@ -38,9 +38,9 @@ new class extends Component
 
             <!-- Theme Toggler -->
             <div class="hidden sm:flex sm:items-center sm:ms-auto">
-                <button @click="darkMode = !darkMode" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-zinc-700 rounded-lg text-sm p-2.5">
-                    <svg x-show="darkMode" style="display: none;" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.32a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.415l-.708-.708a1 1 0 010-1.414zm3.78 5.68a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-10 7a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-2.32a1 1 0 01-1.415 0l-.708-.707a1 1 0 011.414-1.415l.708.708a1 1 0 010 1.414zm-3.78-5.68a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zM10 5a5 5 0 100 10 5 5 0 000-10z"></path></svg>
-                    <svg x-show="!darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
+                <button @click="$store.theme.toggle()" class="text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-zinc-800 focus:outline-none focus:ring-4 focus:ring-gray-200 dark:focus:ring-zinc-700 rounded-lg text-sm p-2.5">
+                    <svg x-show="$store.theme.darkMode" style="display: none;" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M10 2a1 1 0 011 1v1a1 1 0 11-2 0V3a1 1 0 011-1zm4.22 2.32a1 1 0 011.415 0l.708.707a1 1 0 01-1.414 1.415l-.708-.708a1 1 0 010-1.414zm3.78 5.68a1 1 0 011 1v1a1 1 0 11-2 0v-1a1 1 0 011-1zm-10 7a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zm-4.22-2.32a1 1 0 01-1.415 0l-.708-.707a1 1 0 011.414-1.415l.708.708a1 1 0 010 1.414zm-3.78-5.68a1 1 0 01-1-1v-1a1 1 0 112 0v1a1 1 0 01-1 1zM10 5a5 5 0 100 10 5 5 0 000-10z"></path></svg>
+                    <svg x-show="!$store.theme.darkMode" class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path d="M17.293 13.293A8 8 0 016.707 2.707a8.001 8.001 0 1010.586 10.586z"></path></svg>
                 </button>
             </div>
 
