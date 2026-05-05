@@ -2,11 +2,28 @@
      x-data="{ showGroupModal: @entangle('showGroupModal') }">
     <!-- Left Sidebar -->
     <div class="w-1/3 bg-gray-50/40 dark:bg-zinc-900/40 border-r border-gray-200 dark:border-zinc-800 flex flex-col transition-colors">
-        <div class="p-4 border-b border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 flex justify-between items-center transition-colors">
-            <span class="font-semibold text-lg text-gray-800 dark:text-white">Chats</span>
-            <button @click="showGroupModal = true" class="text-[#FF2D20] hover:text-red-600 transition-colors">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            </button>
+        <div class="p-3 border-b border-gray-200 dark:border-zinc-800 bg-white/60 dark:bg-zinc-950/60 flex flex-col gap-3 transition-colors">
+            <div class="flex justify-between items-center">
+                <span class="font-semibold text-xl text-gray-800 dark:text-white">Chats</span>
+                <div class="flex space-x-1 text-gray-500 dark:text-zinc-400">
+                    <button class="p-2 hover:text-[#FF2D20] hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" stroke-width="2" stroke-dasharray="10 20" stroke-linecap="round"></circle></svg>
+                    </button>
+                    <button class="p-2 hover:text-[#FF2D20] hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                    </button>
+                    <button @click="showGroupModal = true" class="p-2 hover:text-[#FF2D20] hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-full transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                    </button>
+                </div>
+            </div>
+            <!-- Search Bar -->
+            <div class="relative">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input wire:model.live.debounce.300ms="search" type="text" class="w-full bg-gray-100/80 dark:bg-zinc-800/80 border-none rounded-lg pl-9 pr-4 py-2 text-sm text-gray-800 dark:text-white placeholder-gray-500 focus:ring-1 focus:ring-[#FF2D20] transition-shadow" placeholder="Search or start a new chat">
+            </div>
         </div>
         <div class="overflow-y-auto flex-1 p-2">
             @forelse($conversations as $conversation)
@@ -26,14 +43,32 @@
                             <span class="absolute bottom-0 right-0 block h-3 w-3 rounded-full bg-green-500 ring-2 ring-white dark:ring-zinc-900"></span>
                         @endif
                     </div>
-                    <div class="ml-4 flex-1">
-                        <div class="font-semibold text-gray-800 dark:text-white flex justify-between">
-                            <span>{{ $name }}</span>
-                            @if($isGroup)
-                                <span class="text-xs text-gray-500 bg-gray-200 dark:bg-zinc-700 px-2 py-0.5 rounded-full">Group</span>
+                    <div class="ml-4 flex-1 overflow-hidden">
+                        <div class="font-semibold text-gray-800 dark:text-white flex justify-between items-baseline">
+                            <span class="truncate">{{ $name }}</span>
+                            @if(isset($conversation->messages) && $conversation->messages->count() > 0)
+                                <span class="text-xs text-gray-500 dark:text-zinc-500 whitespace-nowrap ml-2">
+                                    {{ \Carbon\Carbon::parse($conversation->messages->first()->created_at)->shortAbsoluteDiffForHumans() }}
+                                </span>
+                            @elseif($isGroup)
+                                <span class="text-[10px] text-gray-500 bg-gray-200 dark:bg-zinc-700 px-1.5 py-0.5 rounded-md whitespace-nowrap ml-2">Group</span>
                             @endif
                         </div>
-                        <div class="text-sm text-gray-500 dark:text-zinc-400 truncate">Select to chat...</div>
+                        <div class="flex justify-between items-center mt-0.5">
+                            <div class="text-sm text-gray-500 dark:text-zinc-400 truncate pr-2">
+                                @if(isset($conversation->messages) && $conversation->messages->count() > 0)
+                                    {{ $conversation->messages->first()->body }}
+                                @else
+                                    <span class="italic text-gray-400">No messages yet</span>
+                                @endif
+                            </div>
+                            <!-- Mock Unread Badge (1 in 4 chance for demo) -->
+                            @if(rand(0, 3) === 1)
+                                <span class="bg-[#FF2D20] text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full min-w-[18px] flex items-center justify-center">
+                                    {{ rand(1, 5) }}
+                                </span>
+                            @endif
+                        </div>
                     </div>
                 </div>
             @empty
@@ -105,18 +140,34 @@
             </div>
 
             <!-- Input Area -->
-            <div class="p-4 bg-gray-50/50 dark:bg-zinc-950/50 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors">
-                <form wire:submit.prevent="sendMessage" class="flex items-center space-x-2">
+            <div class="p-3 bg-gray-50/80 dark:bg-zinc-950/80 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors">
+                <form wire:submit.prevent="sendMessage" class="flex items-center space-x-3">
+                    <div class="flex space-x-1 text-gray-500 dark:text-zinc-400">
+                        <button type="button" class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </button>
+                        <button type="button" class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                        </button>
+                    </div>
+                    
                     <input 
                         type="text" 
                         wire:model="newMessage" 
-                        class="flex-1 rounded-full border-gray-300 dark:border-zinc-700 focus:border-[#FF2D20] focus:ring-[#FF2D20] px-4 py-2 bg-white dark:bg-zinc-900 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 transition-colors"
-                        placeholder="Type a message..."
+                        class="flex-1 rounded-xl border-none focus:ring-1 focus:ring-[#FF2D20] px-4 py-2.5 bg-white dark:bg-zinc-900 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 transition-shadow shadow-sm"
+                        placeholder="Type a message"
                         required
                     />
-                    <button type="submit" class="bg-[#FF2D20] hover:bg-red-600 text-white p-2 rounded-full w-10 h-10 flex items-center justify-center transition-colors shadow-md">
-                        <svg class="w-5 h-5 ml-1 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
-                    </button>
+                    
+                    @if($newMessage)
+                        <button type="submit" class="p-2.5 bg-[#FF2D20] hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-md min-w-[44px] min-h-[44px]">
+                            <svg class="w-5 h-5 ml-1 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+                        </button>
+                    @else
+                        <button type="button" class="p-2.5 text-gray-500 dark:text-zinc-400 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 min-w-[44px] min-h-[44px] flex items-center justify-center">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+                        </button>
+                    @endif
                 </form>
             </div>
         @else
