@@ -14,6 +14,7 @@ class Chat extends Component
     public $activeConversation = null;
     public $messages = [];
     public $newMessage = '';
+    public $search = '';
     
     public $showGroupModal = false;
     public $groupName = '';
@@ -27,9 +28,30 @@ class Chat extends Component
         $this->loadConversations();
     }
 
+    public function updatedSearch()
+    {
+        $this->loadConversations();
+    }
+
     public function loadConversations()
     {
-        $this->conversations = auth()->user()->conversations()->with('users')->orderByDesc('updated_at')->get();
+        $query = auth()->user()->conversations()
+            ->with(['users', 'messages' => function($q) {
+                $q->latest()->limit(1);
+            }])
+            ->orderByDesc('updated_at');
+
+        if (!empty($this->search)) {
+            $query->where(function($q) {
+                $q->where('name', 'like', '%' . $this->search . '%')
+                  ->orWhereHas('users', function($q2) {
+                      $q2->where('users.id', '!=', auth()->id())
+                         ->where('name', 'like', '%' . $this->search . '%');
+                  });
+            });
+        }
+
+        $this->conversations = $query->get();
     }
 
     public function selectConversation($conversationId)
