@@ -7,13 +7,16 @@ use App\Models\Message;
 use App\Models\User;
 use Livewire\Component;
 use Livewire\Attributes\On;
+use Livewire\WithFileUploads;
 
 class Chat extends Component
 {
+    use WithFileUploads;
     public $conversations = [];
     public $activeConversation = null;
     public $messages = [];
     public $newMessage = '';
+    public $attachment;
     public $search = '';
     
     public $showGroupModal = false;
@@ -114,18 +117,37 @@ class Chat extends Component
 
     public function sendMessage()
     {
-        if (!$this->newMessage) return;
+        if (empty($this->newMessage) && !$this->attachment) return;
         if (!$this->activeConversation) return;
+
+        $attachmentPath = null;
+        $attachmentType = null;
+
+        if ($this->attachment) {
+            $attachmentPath = $this->attachment->store('attachments', 'public');
+            $mime = $this->attachment->getMimeType();
+            
+            if (str_starts_with($mime, 'image/')) {
+                $attachmentType = 'image';
+            } elseif (str_starts_with($mime, 'video/')) {
+                $attachmentType = 'video';
+            } else {
+                $attachmentType = 'file';
+            }
+        }
 
         $message = Message::create([
             'conversation_id' => $this->activeConversation->id,
             'user_id' => auth()->id(),
-            'body' => $this->newMessage
+            'body' => $this->newMessage ?? '',
+            'attachment' => $attachmentPath,
+            'attachment_type' => $attachmentType,
         ]);
 
         $this->activeConversation->touch();
 
         $this->newMessage = '';
+        $this->attachment = null;
         
         $message->load('user');
         $this->messages[] = $message->toArray();
