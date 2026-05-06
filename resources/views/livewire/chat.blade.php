@@ -116,8 +116,27 @@
                         <!-- My Message -->
                         <div class="flex items-end justify-end relative z-10">
                             <div class="bg-[#FF2D20] text-white p-3 rounded-2xl rounded-tr-none max-w-xs lg:max-w-md shadow-md">
-                                {{ $message['body'] }}
-                                <div class="text-xs text-red-100 mt-1 text-right opacity-80">
+                                @if(!empty($message['attachment']))
+                                    @if($message['attachment_type'] === 'image')
+                                        <img src="{{ Storage::url($message['attachment']) }}" alt="Attachment" class="max-w-full h-auto rounded-lg mb-2 shadow-sm">
+                                    @elseif($message['attachment_type'] === 'video')
+                                        <video controls class="max-w-full h-auto rounded-lg mb-2 shadow-sm">
+                                            <source src="{{ Storage::url($message['attachment']) }}">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    @else
+                                        <a href="{{ Storage::url($message['attachment']) }}" target="_blank" download class="flex items-center p-3 bg-white/20 hover:bg-white/30 rounded-lg mb-2 transition-colors border border-white/20">
+                                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            <span class="text-sm font-medium">Download File</span>
+                                        </a>
+                                    @endif
+                                @endif
+                                
+                                @if(!empty($message['body']))
+                                    <div>{{ $message['body'] }}</div>
+                                @endif
+                                
+                                <div class="text-xs text-red-100 mt-1 text-right opacity-80 flex justify-end items-center">
                                     {{ \Carbon\Carbon::parse($message['created_at'])->format('h:i A') }}
                                 </div>
                             </div>
@@ -129,7 +148,27 @@
                                 @if($isGroup)
                                     <div class="text-xs font-semibold text-[#FF2D20] mb-1">{{ $message['user']['name'] }}</div>
                                 @endif
-                                {{ $message['body'] }}
+                                
+                                @if(!empty($message['attachment']))
+                                    @if($message['attachment_type'] === 'image')
+                                        <img src="{{ Storage::url($message['attachment']) }}" alt="Attachment" class="max-w-full h-auto rounded-lg mb-2 shadow-sm border border-gray-100 dark:border-zinc-700">
+                                    @elseif($message['attachment_type'] === 'video')
+                                        <video controls class="max-w-full h-auto rounded-lg mb-2 shadow-sm border border-gray-100 dark:border-zinc-700">
+                                            <source src="{{ Storage::url($message['attachment']) }}">
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    @else
+                                        <a href="{{ Storage::url($message['attachment']) }}" target="_blank" download class="flex items-center p-3 bg-gray-100 dark:bg-zinc-700/50 hover:bg-gray-200 dark:hover:bg-zinc-700 rounded-lg mb-2 transition-colors border border-gray-200 dark:border-zinc-600">
+                                            <svg class="w-6 h-6 mr-2 text-[#FF2D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                                            <span class="text-sm font-medium">Download File</span>
+                                        </a>
+                                    @endif
+                                @endif
+
+                                @if(!empty($message['body']))
+                                    <div>{{ $message['body'] }}</div>
+                                @endif
+                                
                                 <div class="text-xs text-gray-400 dark:text-zinc-400 mt-1 text-left">
                                     {{ \Carbon\Carbon::parse($message['created_at'])->format('h:i A') }}
                                 </div>
@@ -140,35 +179,54 @@
             </div>
 
             <!-- Input Area -->
-            <div class="p-3 bg-gray-50/80 dark:bg-zinc-950/80 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors">
-                <form wire:submit.prevent="sendMessage" class="flex items-center space-x-3">
-                    <div class="flex space-x-1 text-gray-500 dark:text-zinc-400">
-                        <button type="button" class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        </button>
-                        <button type="button" class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+            <div class="p-3 bg-gray-50/80 dark:bg-zinc-950/80 border-t border-gray-200 dark:border-zinc-800 z-10 transition-colors flex flex-col relative">
+                
+                <!-- Attachment Preview -->
+                @if($attachment)
+                    <div class="mb-3 p-3 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 rounded-lg flex items-center justify-between shadow-sm animate-pulse">
+                        <div class="flex items-center text-sm text-gray-700 dark:text-gray-300">
+                            <svg class="w-5 h-5 mr-2 text-[#FF2D20]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path></svg>
+                            File attached ready to send...
+                        </div>
+                        <button type="button" wire:click="$set('attachment', null)" class="text-gray-500 hover:text-red-500 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                         </button>
                     </div>
+                @endif
+
+                <!-- Progress Bar -->
+                <div x-data="{ isUploading: false, progress: 0 }" x-on:livewire-upload-start="isUploading = true" x-on:livewire-upload-finish="isUploading = false" x-on:livewire-upload-error="isUploading = false" x-on:livewire-upload-progress="progress = $event.detail.progress" class="w-full">
                     
-                    <input 
-                        type="text" 
-                        wire:model="newMessage" 
-                        class="flex-1 rounded-xl border-none focus:ring-1 focus:ring-[#FF2D20] px-4 py-2.5 bg-white dark:bg-zinc-900 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 transition-shadow shadow-sm"
-                        placeholder="Type a message"
-                        required
-                    />
-                    
-                    @if($newMessage)
+                    <div x-show="isUploading" class="w-full bg-gray-200 rounded-full h-1.5 mb-2 dark:bg-zinc-700 overflow-hidden">
+                        <div class="bg-[#FF2D20] h-1.5 rounded-full transition-all duration-150" x-bind:style="`width: ${progress}%`"></div>
+                    </div>
+
+                    <form wire:submit.prevent="sendMessage" class="flex items-center space-x-3 w-full">
+                        <div class="flex space-x-1 text-gray-500 dark:text-zinc-400">
+                            <button type="button" class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </button>
+                            
+                            <!-- File Attachment Label -->
+                            <label class="p-2 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 cursor-pointer">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                                <input type="file" wire:model="attachment" class="hidden" accept="image/*,video/*,.pdf,.doc,.docx,.zip,.txt">
+                            </label>
+                        </div>
+                        
+                        <input 
+                            type="text" 
+                            wire:model="newMessage" 
+                            class="flex-1 rounded-xl border-none focus:ring-1 focus:ring-[#FF2D20] px-4 py-2.5 bg-white dark:bg-zinc-900 text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-zinc-500 transition-shadow shadow-sm"
+                            placeholder="Type a message"
+                            {{ $attachment ? '' : 'required' }}
+                        />
+                        
                         <button type="submit" class="p-2.5 bg-[#FF2D20] hover:bg-red-600 text-white rounded-full flex items-center justify-center transition-colors shadow-md min-w-[44px] min-h-[44px]">
                             <svg class="w-5 h-5 ml-1 transform -rotate-45" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
                         </button>
-                    @else
-                        <button type="button" class="p-2.5 text-gray-500 dark:text-zinc-400 hover:text-[#FF2D20] transition-colors rounded-full hover:bg-gray-200 dark:hover:bg-zinc-800 min-w-[44px] min-h-[44px] flex items-center justify-center">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
-                        </button>
-                    @endif
-                </form>
+                    </form>
+                </div>
             </div>
         @else
             <!-- Empty State -->
@@ -200,13 +258,13 @@
             <div class="p-4">
                 <div class="mb-4">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Group Name (Optional)</label>
-                    <input type="text" wire:model="groupName" class="w-full rounded-md border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:border-[#FF2D20] focus:ring-[#FF2D20] sm:text-sm" placeholder="Leave empty for 1-on-1 chat">
+                    <input type="text" wire:model.live="groupName" class="w-full rounded-md border-gray-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-gray-800 dark:text-white focus:border-[#FF2D20] focus:ring-[#FF2D20] sm:text-sm" placeholder="Leave empty for 1-on-1 chat">
                 </div>
                 <div class="mb-4 max-h-60 overflow-y-auto">
                     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Select Users</label>
                     @foreach($allUsers as $u)
                         <label class="flex items-center space-x-3 mb-2 p-2 rounded hover:bg-gray-50 dark:hover:bg-zinc-800 cursor-pointer">
-                            <input type="checkbox" wire:model="selectedUsers" value="{{ $u->id }}" class="rounded text-[#FF2D20] focus:ring-[#FF2D20] dark:bg-zinc-700 dark:border-zinc-600">
+                            <input type="checkbox" wire:model.live="selectedUsers" value="{{ $u->id }}" class="rounded text-[#FF2D20] focus:ring-[#FF2D20] dark:bg-zinc-700 dark:border-zinc-600">
                             <span class="text-gray-800 dark:text-white">{{ $u->name }}</span>
                         </label>
                     @endforeach
@@ -214,17 +272,11 @@
                 <div class="flex justify-end gap-2 mt-4">
                     <button @click="showGroupModal = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-zinc-800 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700">Cancel</button>
                     <!-- Logic to dynamically call createGroup or createOrSelectPrivateChat based on selection -->
-                    <div x-data="{
-                        get selectedCount() {
-                            return document.querySelectorAll('input[type=checkbox][wire\\\\:model=selectedUsers]:checked').length;
-                        },
-                        get hasGroupName() {
-                            return document.querySelector('input[wire\\\\:model=groupName]').value.length > 0;
-                        }
-                    }">
-                        <button wire:click="createGroup" x-show="selectedCount > 1 || hasGroupName" class="px-4 py-2 text-sm font-medium text-white bg-[#FF2D20] rounded-md hover:bg-red-600">Create Group</button>
-                        <button wire:click="createOrSelectPrivateChat(@this.selectedUsers[0])" x-show="selectedCount === 1 && !hasGroupName" class="px-4 py-2 text-sm font-medium text-white bg-[#FF2D20] rounded-md hover:bg-red-600">Start Chat</button>
-                    </div>
+                    @if(count($selectedUsers) > 1 || !empty($groupName))
+                        <button wire:click="createGroup" class="px-4 py-2 text-sm font-medium text-white bg-[#FF2D20] rounded-md hover:bg-red-600 transition-colors">Create Group</button>
+                    @elseif(count($selectedUsers) === 1)
+                        <button wire:click="createOrSelectPrivateChat('{{ $selectedUsers[0] }}')" class="px-4 py-2 text-sm font-medium text-white bg-[#FF2D20] rounded-md hover:bg-red-600 transition-colors">Start Chat</button>
+                    @endif
                 </div>
             </div>
         </div>
