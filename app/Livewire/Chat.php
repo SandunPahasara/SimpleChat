@@ -25,6 +25,12 @@ class Chat extends Component
     public $allUsers = [];
     public $onlineUsers = [];
 
+    // User ID Search & Profile Viewing Properties
+    public $userIdSearchQuery = '';
+    public $userIdSearchResult = null;
+    public $profileUser = null;
+    public $showProfileModal = false;
+
     public function mount()
     {
         $this->allUsers = User::where('id', '!=', auth()->id())->get();
@@ -79,7 +85,53 @@ class Chat extends Component
             $this->loadConversations();
         }
 
+        // Reset search state and close modals
+        $this->showGroupModal = false;
+        $this->userIdSearchQuery = '';
+        $this->userIdSearchResult = null;
+        $this->showProfileModal = false;
+
         $this->selectConversation($conversation->id);
+    }
+
+    public function searchUserByUserId()
+    {
+        \Log::info('searchUserByUserId called. Raw query: "' . $this->userIdSearchQuery . '"');
+        $this->userIdSearchResult = null;
+        if (empty($this->userIdSearchQuery)) {
+            \Log::info('Search query is empty, returning early.');
+            return;
+        }
+
+        $cleanQuery = ltrim(trim($this->userIdSearchQuery), '@');
+        $cleanQuery = strtolower($cleanQuery);
+        \Log::info('Cleaned query for lookup: "' . $cleanQuery . '"');
+
+        $user = User::where('username', $cleanQuery)
+            ->where('id', '!=', auth()->id())
+            ->first();
+
+        if ($user) {
+            \Log::info('User found in database: ID ' . $user->id . ' (Name: ' . $user->name . ')');
+            $this->userIdSearchResult = $user;
+        } else {
+            \Log::info('No user found in database matching: "' . $cleanQuery . '" (auth id: ' . auth()->id() . ')');
+            $this->userIdSearchResult = false; // Flag that search was performed but no user matched
+        }
+    }
+
+    public function viewUserProfile($userId)
+    {
+        $this->profileUser = User::find($userId);
+        if ($this->profileUser) {
+            $this->showProfileModal = true;
+        }
+    }
+
+    public function closeProfileModal()
+    {
+        $this->showProfileModal = false;
+        $this->profileUser = null;
     }
 
     public function createGroup()
